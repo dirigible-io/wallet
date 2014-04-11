@@ -139,9 +139,9 @@ function validInput(connection, message){
     var valid = true;
     var sql;
     if(message.type === 0){
-        sql = "SELECT COUNT(ID) AS FOUND FROM EXPENSE_TYPE WHERE ID = ?";
+        sql = "SELECT COUNT(ID) AS FOUND FROM EXPENSE_CATEGORY WHERE ID = ?";
     }else if(message.type === 1){
-        sql = "SELECT COUNT(ID) AS FOUND FROM INCOME_TYPE WHERE ID = ?";
+        sql = "SELECT COUNT(ID) AS FOUND FROM INCOME_CATEGORY WHERE ID = ?";
     }else{
         valid = false;
     }
