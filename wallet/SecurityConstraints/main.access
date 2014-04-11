@@ -1,0 +1,10 @@
+[
+  {
+    "location":"/wallet",
+    "roles":
+      [
+        {"role":"Everyone"}
+      ]
+  }
+]
+

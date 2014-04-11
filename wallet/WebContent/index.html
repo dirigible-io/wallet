@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" ng-app ng-controller="IncomeStatementController">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Enjoy Financing Like Never Before</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../../components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Fonts -->
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+
+    <!-- Custom Theme CSS -->
+    <link href="css/grayscale.css" rel="stylesheet">
+    <link href="css/datepicker.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-custom">
+
+    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="#page-top">
+                    <span class="light">{{ user }}'s Wallet</span>
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div id="nav-main" class="collapse navbar-collapse navbar-right navbar-main-collapse">
+                <ul class="nav navbar-nav">
+                    <!-- Hidden li included to remove active class from records link when scrolled up past records section -->
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#page-top">Balance</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#income">Income</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#expense">Expense</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#history">History</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#chart">Chart</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <section class="intro">
+        <div class="intro-body">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <p class="intro-text">BALANCE</p>
+                        <h1 class="brand-heading">$ {{ balance }}</h1>
+                        <div class="btn-group page-scroll">
+                            <a href="#income" type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus"></i> Income</a>
+                            <a href="#expense" type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus"></i> Expense</a>
+                            <a href="#chart" type="button" class="btn btn-default"><i class="fa fa-signal"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="income" class="container text-left">
+        <div class="records-section page-scroll">
+              <ul class="nav nav-tabs">
+                  <li class="active"><a href="#income" data-toggle="tab"><i class="glyphicon glyphicon-plus"></i> Income</a></li>
+                </ul>
+                <div class="well">
+                    <select class="form-control error" ng-model="selectedIncomeCategory" ng-options="i.category for i in incomeCategories" required>
+                        <option value="">-- Income Type --</option>
+                    </select>
+                    <br>
+                    <label>Date</label> 
+            		<input id="income_datepicker" type="text" class="form-control" data-date-format="yyyy-mm-dd"> 
+                    <br>
+                    <label>Value</label> 
+                    <input type="number" class="form-control" ng-model="incomeEntry.value"> 
+                </div>
+        		<br>
+                
+                <div id="toastIncome" class='toast' style='display:none'>{{ toastMessage }}</div>
+                
+                <div class="btn-group" style="float: right;">
+                    <button class="btn btn-default" ng-click="saveIncome()"><i class="fa fa-floppy-o"></i> Save</button>
+                    <a href="#page-top" type="button" class="btn btn-default"><i class="fa fa-arrow-up"></i> Balance</a>
+                </div>
+        </div>
+    </section>
+    <section id="expense" class="container text-left">
+            <div class="records-section page-scroll">
+                <ul class="nav nav-tabs">
+                  <li class="active"><a href="#expense" data-toggle="tab"><i class="glyphicon glyphicon-minus"></i> Expense</a></li>
+                </ul>
+                <div class="well">
+                    <select class="form-control error" ng-model="selectedExpenseCategory" ng-options="e.category for e in expenseCategories" required>
+                        <option value="">-- Expense Type --</option>
+                    </select>
+                    <br>
+                    <label>Date</label> 
+                    <input id="expense_datepicker" type="text" class="form-control" data-date-format="dd-mm-yyyy"> 
+                	<br>
+                    <label>Value</label> 
+                    <input type="number" class="form-control" ng-model="expenseEntry.value"> 
+                </div>
+        		<br>
+                
+                <div id="toastExpense" class='toast' style='display:none'>{{ toastMessage }}</div>
+                
+                <div class="btn-group" style="float: right;">
+                    <button class="btn btn-default" ng-click="saveExpense()"><i class="fa fa-floppy-o"></i> Save</button>
+                    <a href="#page-top" type="button" class="btn btn-default"><i class="fa fa-arrow-up"></i> Balance</a>
+                </div>
+        </div>
+    </section>
+    
+    <section id="history" class="content-section text-center page-scroll">
+        <div class="container">
+            <ul id="statement" class="nav nav-tabs">
+              <li class="active"><a href="#history" data-toggle="tab" ng-click="setIncomeHistory(true)">Incomes</a></li>
+              <li><a href="#history" data-toggle="tab" ng-click="setIncomeHistory(false)">Expenses</a></li>
+            </ul>
+            <div class="well">
+                <table class="text-left table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Category</th>
+                            <th style="width: 25%;">Value</th>
+                            <th style="width: 35%;">Date</th>
+                            <th style="width: 15%;"><i class="fa fa-wrench"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody ng-repeat="h in history">
+                        <tr>
+                            <td style="width: 25%;">{{ h.category }}</td>
+                            <td style="width: 25%;">{{ h.value }}</td>
+                            <td style="width: 35%;">{{ h.date }}</td>
+                            <td style="width: 15%;">
+                                <button class="btn btn-danger btn-xs" ng-click="deleteHistory(h)">
+                                    <i class="glyphicon glyphicon-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="chart" class="container content-section text-center">
+        <h2>TODO</h2>
+        <p>Add chart!</p>
+        <p>Timeline chart (incomes vs expenses)</p>
+        <p>Cash flow overview</p>
+    </section>
+
+	<!-- Core JavaScript Files -->
+    <script src="../../components/jquery/jquery.min.js"></script>
+    <script src="../../components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+    <script src="../../components/angular/angular.min.js"></script>
+    
+    <!-- Custom Theme JavaScript -->
+    <script src="js/grayscale.js"></script>
+    <script src="js/bootstrap-datepicker.js"></script>
+    <script src="js/app.js"></script>
+    
+</body>
+
+</html>
