@@ -1,0 +1,22 @@
+<section id="income" class="container center-section text-left" ng-controller="IncomeController">
+    <div class="records-section page-scroll">
+        <div class="well">
+            <select class="form-control error" ng-model="selectedCategory" ng-options="c.category for c in categories" required>
+                <option value="">-- Income Type --</option>
+            </select>
+            <br>
+            <label>Date</label> 
+        	<input id="income_datepicker" type="text" class="form-control" data-date-format="yyyy-mm-dd"> 
+            <br>
+            <label>Value</label> 
+            <input type="number" class="form-control" ng-model="entry.value"> 
+        </div>
+		<br>
+        
+        <div id="toast" class='toast' style='display:none'>{{ toastMessage }}</div>
+        
+        <div class="btn-group" style="float: right;">
+            <button class="btn btn-default" ng-click="save()"><i class="fa fa-floppy-o"></i> Save</button>
+        </div>
+    </div>
+</section>

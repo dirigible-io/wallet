@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Income",
+        "link": "income.html",
+        "subMenu": []
+    },
+    {
+        "name": "Expense",
+        "link": "expense.html",
+        "subMenu": []
+    },
+    {
+        "name": "Records",
+        "link": "records.html",
+        "subMenu": []
+    },
+    {
+        "name": "Charts",
+        "link": "charts.html",
+        "subMenu": []
+    }
+]

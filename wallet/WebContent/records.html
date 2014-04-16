@@ -1,0 +1,28 @@
+<section ng-controller="RecordsController" class="content-section center-section text-center">
+    <div class="container">
+        <div class="well">
+            <table class="text-left table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Date</th>
+                        <th style="width: 35%;">Category</th>
+                        <th style="width: 25%;">Value</th>
+                        <th style="width: 5%;"><i class="fa fa-wrench"></i></th>
+                    </tr>
+                </thead>
+                <tbody ng-repeat="h in history">
+                    <tr>
+                        <td style="width: 35%;">{{ h.date }}</td>
+                        <td style="width: 35%;">{{ h.category }}</td>
+                        <td style="width: 25%;">{{ h.value }}</td>
+                        <td style="width: 5%;">
+                            <button class="btn btn-danger btn-xs" ng-click="delete(h)">
+                                <i class="glyphicon glyphicon-remove"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

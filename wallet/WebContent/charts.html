@@ -1,0 +1,28 @@
+<style>
+#chart {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+</style>
+
+<div class="content center-section" ng-controller="ChartsController">
+    <div id="chart"></div>
+</div>
+
+<script src="js/chart.js"></script>

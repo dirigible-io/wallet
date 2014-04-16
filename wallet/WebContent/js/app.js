@@ -8,135 +8,121 @@ $('#statement a').click(function (e) {
 });
 
 
-function IncomeStatementController($scope, $http){
-	var url = '/dirigible/js-secured/wallet/category.js';
-	var incomeStatementUrl = '/dirigible/js-secured/wallet/income_statement.js';
+var url = '/dirigible/js-secured/wallet/category.js';
+var incomeStatementUrl = '/dirigible/js-secured/wallet/income_statement.js';
+
+function setTodayDateForDatepicker(id, entry){
+    var nowTemp = new Date();
+    var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+    entry.date = now;
+    $(id).datepicker('setValue', now);
+}
+
+function makeToast(id, message, scope){
+    scope.toastMessage = message;
+    $(id).fadeIn(400).delay(1500).fadeOut(400);    
+}
+    
+function clear(id, scope){
+    scope.entry = {};
+    scope.selectedCategory = null;
+    setTodayDateForDatepicker(id, entry);
+}    
+
+function BalanceController($scope, $http){
+    $http.get(incomeStatementUrl + "?balance=true").success(function(data){
+        $scope.balance = data;
+    });
+}
+
+function IncomeController($scope, $http){
+    $("#replaceBrand").replaceWith("Income");
+    
+    $scope.entry = {};
+    var datepickerId = '#income_datepicker';
+    
+    $(datepickerId).datepicker()
+    .on('changeDate', function(ev){
+        var date = new Date(ev.date.valueOf());
+        $scope.entry.date = date;
+        $(this).datepicker('hide');
+    });
+    
+    setTodayDateForDatepicker(datepickerId, $scope.entry);
     
     $http.get(url).success(function(data){
-        setCategoryData(data);
+        $scope.categories = data.income;
     });
     
-    refresh();
-
-    setDatesForDatepickers();
-
-    $('#income_datepicker').datepicker()
-    .on('changeDate', function(ev){
-        var date = new Date(ev.date.valueOf());
-        $scope.incomeEntry.date = date;
-        $(this).datepicker('hide');
-    });
-    
-    $('#expense_datepicker').datepicker()
-    .on('changeDate', function(ev){
-        var date = new Date(ev.date.valueOf());
-        $scope.expenseEntry.date = date;
-        $(this).datepicker('hide');
-    });
-
-    function setCategoryData(data){
-        $scope.user = data.user;
-        $scope.incomeCategories = data.income;
-        $scope.expenseCategories = data.expense;
-    }
-    
-    function setIncomeStatementData(data){
-        $scope.full_history = data;
-        $scope.history = $scope.full_history.income;
-        $scope.balance = data.balance;
-        $scope.selectedIncomeCategory = null;
-        $scope.selectedExpenseCategory = null;
-    }
-    
-    function setDatesForDatepickers(){
-        var nowTemp = new Date();
-        var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
-
-        
-        $scope.incomeEntry.date = now;
-        $scope.expenseEntry.date = now;
-        
-        // Disables previouse period of time in the datepicker
-        // $('#income_datepicker').datepicker({
-        //     onRender: function(date) {
-        //         return date.valueOf() < now.valueOf() ? 'disabled' : '';
-        //     }
-        // });
-        
-        $('#income_datepicker').datepicker('setValue', now);
-        $('#expense_datepicker').datepicker('setValue', now);
-    }
-    
-    function refresh(){
-        $scope.expenseEntry = {};
-        $scope.incomeEntry = {};
-                
-        $http.get(incomeStatementUrl).success(function(data){
-            setDatesForDatepickers();
-            setIncomeStatementData(data);
-        });
-    
-        $http.get(incomeStatementUrl).success(function(data){
-            $scope.full_history = data;
-            $scope.history = $scope.full_history.income;
-            $scope.netWorth = data.netWorth;
-        }); 
-    }
-    
-    function makeToast(id, message){
-        $scope.toastMessage = message;
-        $(id).fadeIn(400).delay(1500).fadeOut(400);    
-    }
-    
-    $scope.saveIncome = function(){
-        var valid = $scope.selectedIncomeCategory && $scope.incomeEntry && $scope.incomeEntry.date && $scope.incomeEntry.value;
+    $scope.save = function(){
+        var isValid = $scope.selectedCategory && $scope.entry && $scope.entry.date && $scope.entry.value;
         var message = "Please fill all 'Income' fields!";
         
-        if(valid){
-            $scope.incomeEntry.type = 1;
-            $scope.incomeEntry.category = $scope.selectedIncomeCategory.id;
+        if(isValid){
+            $scope.entry.type = 1;
+            $scope.entry.category = $scope.selectedCategory.id;
             
-            $http.post(incomeStatementUrl, $scope.incomeEntry)
+            $http.post(incomeStatementUrl, $scope.entry)
             .success(function(response){
-                refresh();
-                makeToast('#toastIncome', "Income Saved!");
+                makeToast('#toast', "Income Saved!", $scope);
+                clear(datepickerId, $scope);
             }).error(function(response){
-                makeToast('#toastIncome', response.err.message);
+                makeToast('#toast', response.err.message, $scope);
             });
         }else{
-            makeToast('#toastIncome', message);
+            makeToast('#toast', message, $scope);
         }
     };
+}
+
+function ExpenseController($scope, $http){
+    $("#replaceBrand").replaceWith("Expense");
     
-    $scope.saveExpense = function(){
-        var valid = $scope.selectedExpenseCategory && $scope.expenseEntry && $scope.expenseEntry.date && $scope.expenseEntry.value;
+    $scope.entry = {};
+    var datepickerId = '#expense_datepicker';
+    
+    $(datepickerId).datepicker()
+    .on('changeDate', function(ev){
+        var date = new Date(ev.date.valueOf());
+        $scope.entry.date = date;
+        $(this).datepicker('hide');
+    });
+    
+    setTodayDateForDatepicker(datepickerId, $scope.entry);
+    
+    $http.get(url).success(function(data){
+        $scope.categories = data.expense;
+    });
+    
+    $scope.save = function(){
+        var isValid = $scope.selectedCategory && $scope.entry && $scope.entry.date && $scope.entry.value;
         var message = "Please fill all 'Expense' fields!";
         
-        if(valid){
-            $scope.expenseEntry.type = 0;
-            $scope.expenseEntry.category = $scope.selectedExpenseCategory.id;
+        if(isValid){
+            $scope.entry.type = 0;
+            $scope.entry.category = $scope.selectedCategory.id;
             
-            $http.post(incomeStatementUrl, $scope.expenseEntry)
+            $http.post(incomeStatementUrl, $scope.entry)
             .success(function(response){
-                refresh();
-                makeToast('#toastExpense', "Expense Saved!");
+                makeToast('#toast', "Expense Saved!", $scope);
+                clear(datepickerId, $scope);
             }).error(function(response){
-                makeToast('#toastExpense', response.err.message);
+                makeToast('#toast', response.err.message, $scope);
             });
         }else{
-            makeToast('#toastExpense', message);
+            makeToast('#toast', message, $scope);
         }
     };
+}
+
+function RecordsController($scope, $http){
+    $("#replaceBrand").replaceWith("Records");
     
-    $scope.setIncomeHistory = function(income){
-        if(income){
-            $scope.history = $scope.full_history.income;
-        }else{
-            $scope.history = $scope.full_history.expense;
-        }
-    };
+    $http.get(incomeStatementUrl).success(function(data){
+        $scope.history = data;
+    });
     
-    $scope.deleteHistory = function(entry){
+    $scope.delete = function(entry){
         var message = entry.value+", "+entry.category+" on "+entry.date;
         var doDelete = confirm("Do you realy want to delete '" + message + "' from your history?");
         if(doDelete){
@@ -144,10 +130,20 @@ function IncomeStatementController($scope, $http){
             var deleteUrl = incomeStatementUrl+"?"+primaryKey+"="+entry[primaryKey];
             $http.delete(deleteUrl)
             .success(function(){
-                refresh();
+                var oldHistory = $scope.history;
+                $scope.history = [];
+                angular.forEach(oldHistory, function(record) {
+                    if (record[primaryKey] != entry[primaryKey]) {
+                        $scope.history.push(record);
+                    }
+                });
             }).error(function(response){
                 $scope.errorMessage = response.err.message;
             });
         }
     };
+}
+
+function ChartsController($scope, $http){
+    $("#replaceBrand").replaceWith("Charts");
 }

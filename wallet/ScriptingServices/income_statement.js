@@ -16,6 +16,8 @@ var sort = xss.escapeSql(request.getParameter('sort'));
 var limit = xss.escapeSql(request.getParameter('limit'));
 var offset = xss.escapeSql(request.getParameter('offset'));
 var desc = xss.escapeSql(request.getParameter('desc'));
+var balance = xss.escapeSql(request.getParameter('balance'));
+var chart = xss.escapeSql(request.getParameter('chart'));
 
 if (limit === null) {
 	limit = 100;
@@ -29,7 +31,13 @@ if(!hasConflictingParameters()){
     if ((method === 'POST')) {
         createIncome_statement();
     } else if ((method === 'GET')) {
-        readIncome_statementList();
+        if(balance){
+            readBalance();
+        } else if(chart){
+            readChart();
+        }else{
+            readIncome_statementList();
+        }
     } else if ((method === 'DELETE')) {
         // delete
         if(isInputParameterValid(idParameter)){
@@ -139,9 +147,9 @@ function validInput(connection, message){
     var valid = true;
     var sql;
     if(message.type === 0){
-        sql = "SELECT COUNT(ID) AS FOUND FROM EXPENSE_CATEGORY WHERE ID = ?";
+        sql = "SELECT COUNT(ID) AS FOUND FROM EXPENSE_TYPE WHERE ID = ?";
     }else if(message.type === 1){
-        sql = "SELECT COUNT(ID) AS FOUND FROM INCOME_CATEGORY WHERE ID = ?";
+        sql = "SELECT COUNT(ID) AS FOUND FROM INCOME_TYPE WHERE ID = ?";
     }else{
         valid = false;
     }
@@ -158,23 +166,89 @@ function validInput(connection, message){
     return valid;
 }
 
+function readBalance(){
+    var connection = datasource.getConnection();
+    try {
+        var balance = 0;
+        var sql = "SELECT SUM(VALUE) AS BALANCE FROM INCOME_STATEMENT WHERE USER = ?";
+        var statement = connection.prepareStatement(sql);
+        statement.setString(1, user);
+        var resultSet = statement.executeQuery();
+        while (resultSet.next()) {
+            balance = resultSet.getDouble("BALANCE");
+        }
+        var text = JSON.stringify(balance, null, 2);
+        response.getWriter().println(text);
+    } catch(e){
+        var errorCode = javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+        makeError(errorCode, errorCode, e.message);
+    } finally {
+        connection.close();
+    }
+}
+
+function readChart(){
+    var connection = datasource.getConnection();
+    try {
+        var result = "date,Income,Expense,Balance";
+
+        var sql = "SELECT DATE, SUM(INCOME) AS INCOME, SUM(EXPENSE) AS EXPENSE FROM " +
+        "(   SELECT DATE, CASE TYPE " +
+              "WHEN 1 THEN VALUE " +
+              "ELSE 0 " +
+              "END " +
+            "AS INCOME, CASE TYPE " +
+              "WHEN 0 THEN VALUE " +
+              "ELSE 0 " +
+              "END " +
+            "AS EXPENSE, USER " +
+            "FROM INCOME_STATEMENT " +
+        ") WHERE USER = ? GROUP BY DATE";
+        
+        var statement = connection.prepareStatement(sql);
+        statement.setString(1, user);
+        
+        var resultSet = statement.executeQuery();
+        // var type, date, value;
+        // var balanceResult = "";
+
+        var balance = 0;
+        
+        while (resultSet.next()) {
+            var date = resultSet.getString("DATE").replace(/-/g, "");
+            var income = resultSet.getDouble("INCOME");
+            var expense = - resultSet.getDouble("EXPENSE");
+            
+            balance += income;
+            balance -= expense;
+            
+            result += "\n" + date + "," + income + "," + expense + "," + balance;
+        }
+        // result += balanceResult;
+        
+        response.getWriter().print(result);
+    } catch(e){
+        var errorCode = javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+        makeError(errorCode, errorCode, e.message);
+    } finally {
+        connection.close();
+    }
+}
+
 // read all entities and print them as JSON array to response
 function readIncome_statementList() {
     var connection = datasource.getConnection();
     try {
-        var result = {};
-        result.income = [];
-        result.expense = [];
-        result.balance = 0;
+        var result = [];
         var sql = "SELECT * FROM "
         + "( "
         + "SELECT A.ID, A.TYPE, B.NAME as CATEGORY, A.VALUE, A.DATE  "
         + "FROM INCOME_STATEMENT A INNER JOIN INCOME_CATEGORY B ON A.CATEGORY = B.ID "
-        + "where A.TYPE = 1 AND A.USER = ?"
-        + "union "
+        + "WHERE A.TYPE = 1 AND A.USER = ?"
+        + "UNION "
         + "SELECT A.ID, A.TYPE, C.NAME as CATEGORY, A.VALUE, A.DATE "
         + "FROM INCOME_STATEMENT A INNER JOIN EXPENSE_CATEGORY C ON A.CATEGORY = C.ID "
-        + "where A.TYPE = 0 AND A.USER = ?"
+        + "WHERE A.TYPE = 0 AND A.USER = ?"
         + ") "
         + "ORDER BY TYPE DESC, DATE DESC, VALUE DESC";
         var statement = connection.prepareStatement(sql);
@@ -182,13 +256,7 @@ function readIncome_statementList() {
         statement.setString(2, user);
         var resultSet = statement.executeQuery();
         while (resultSet.next()) {
-            var entity = createEntity(resultSet);
-            result.balance += entity.value;
-            if(resultSet.getShort("TYPE") === 1){
-                result.income.push(entity);
-            }else{
-                result.expense.push(entity);
-            }
+            result.push(createEntity(resultSet));
         }
         var text = JSON.stringify(result, null, 2);
         response.getWriter().println(text);
@@ -207,7 +275,7 @@ function createEntity(resultSet, data) {
 	result.category = resultSet.getString("CATEGORY");
     result.value = resultSet.getDouble("VALUE");
     result.date = new Date(resultSet.getDate("DATE").getTime() - resultSet.getDate("DATE").getTimezoneOffset()*60*1000);
-    result.date = result.date.toISOString().substring(0, 10);
+    result.date = result.date.toISOString().substring(0, 10).replace(/-/g, "/");
     return result;
 }
 
