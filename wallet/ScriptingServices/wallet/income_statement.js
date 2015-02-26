@@ -94,7 +94,7 @@ function createIncome_statement() {
             var sql = "INSERT INTO INCOME_STATEMENT (";
             sql += "ID";
             sql += ",";
-            sql += "USER";
+            sql += "WALLET_USER";
             sql += ",";
             sql += "TYPE";
             sql += ",";
@@ -170,7 +170,7 @@ function readBalance(){
     var connection = datasource.getConnection();
     try {
         var balance = 0;
-        var sql = "SELECT SUM(VALUE) AS BALANCE FROM INCOME_STATEMENT WHERE USER = ?";
+        var sql = "SELECT SUM(VALUE) AS BALANCE FROM INCOME_STATEMENT WHERE WALLET_USER = ?";
         var statement = connection.prepareStatement(sql);
         statement.setString(1, user);
         var resultSet = statement.executeQuery();
@@ -201,9 +201,9 @@ function readChart(){
               "WHEN 0 THEN VALUE " +
               "ELSE 0 " +
               "END " +
-            "AS EXPENSE, USER " +
+            "AS EXPENSE, WALLET_USER " +
             "FROM INCOME_STATEMENT " +
-        ") WHERE USER = ? GROUP BY DATE";
+        ") WHERE WALLET_USER = ? GROUP BY DATE";
         
         var statement = connection.prepareStatement(sql);
         statement.setString(1, user);
@@ -244,11 +244,11 @@ function readIncome_statementList() {
         + "( "
         + "SELECT A.ID, A.TYPE, B.NAME as CATEGORY, A.VALUE, A.DATE  "
         + "FROM INCOME_STATEMENT A INNER JOIN INCOME_CATEGORY B ON A.CATEGORY = B.ID "
-        + "WHERE A.TYPE = 1 AND A.USER = ?"
+        + "WHERE A.TYPE = 1 AND A.WALLET_USER = ?"
         + "UNION "
         + "SELECT A.ID, A.TYPE, C.NAME as CATEGORY, A.VALUE, A.DATE "
         + "FROM INCOME_STATEMENT A INNER JOIN EXPENSE_CATEGORY C ON A.CATEGORY = C.ID "
-        + "WHERE A.TYPE = 0 AND A.USER = ?"
+        + "WHERE A.TYPE = 0 AND A.WALLET_USER = ?"
         + ") "
         + "ORDER BY TYPE DESC, DATE DESC, VALUE DESC";
         var statement = connection.prepareStatement(sql);
@@ -283,7 +283,7 @@ function createEntity(resultSet, data) {
 function deleteIncome_statement(id) {
     var connection = datasource.getConnection();
     try {
-        var sql = "DELETE FROM INCOME_STATEMENT WHERE "+pkToSQL()+" AND USER = ?" ;
+        var sql = "DELETE FROM INCOME_STATEMENT WHERE "+pkToSQL()+" AND WALLET_USER = ?" ;
         var statement = connection.prepareStatement(sql);
         statement.setString(1, id);
         statement.setString(2, user);

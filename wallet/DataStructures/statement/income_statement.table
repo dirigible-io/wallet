@@ -12,7 +12,7 @@
       }
       ,
       {
-        "name":"USER",
+        "name":"WALLET_USER",
         "type":"VARCHAR",
         "length":"20",
         "notNull":"true",

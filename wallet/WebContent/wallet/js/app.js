@@ -8,8 +8,8 @@ $('#statement a').click(function (e) {
 });
 
 
-var url = '/dirigible/js-secured/wallet/category.js';
-var incomeStatementUrl = '/dirigible/js-secured/wallet/income_statement.js';
+var url = '/dirigible/services/js-secured/wallet/category.js';
+var incomeStatementUrl = '/dirigible/services/js-secured/wallet/income_statement.js';
 
 function setTodayDateForDatepicker(id, entry){
     var nowTemp = new Date();
